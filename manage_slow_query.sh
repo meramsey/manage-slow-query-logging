@@ -1,5 +1,6 @@
 #!/bin/bash
 ## Author: Michael Ramsey
+## https://gitlab.com/mikeramsey/manage-slow-query-logging
 ## Objective Enable Slow query logging for MySQL/MariaDB and allow user to see the logs.
 ## How to use. username state(on or off)
 # ./manage_slow_query.sh username on
