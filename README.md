@@ -2,6 +2,7 @@ This amazing tool makes a normally tedious job much easier when trying to grant 
 
 See it in action below.
 
+```
 [root@cpanel ~]# bash manage_slow_query.sh ibqpnrso on
 Show current status
 +---------------------+-------------------------+
@@ -69,3 +70,4 @@ ls: cannot access /home/ibqpnrso/mysql-slow.log: No such file or directory
 [root@cpanel ~]# ls -l /home/ibqpnrso/mysql-slow.log_2019-10-30 
 -rw-r----- 1 root root 1218 Oct 30 10:24 /home/ibqpnrso/mysql-slow.log_2019-10-30
 [root@cpanel ~]#
+```
