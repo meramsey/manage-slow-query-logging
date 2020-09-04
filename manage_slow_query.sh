@@ -8,14 +8,33 @@
 # Enable slow query log and symlink for user cooluser 
 # bash manage_slow_query.sh cooluser on
 
+## How to use.
+# Check slow query_log:
+# mysql -u root -e "SHOW GLOBAL VARIABLES LIKE '%slow_query_log%';"
+
+# Show slow query time secs.
+# mysql -u root -e "SHOW GLOBAL VARIABLES LIKE '%long_query_time%';"
+
+# Set slow query time to to 4 secs
+# mysql -u root -e "SET GLOBAL long_query_time = 4;"
+
+# Enable slow_query_log:
+# wget -O /root/manage_slow_query.sh https://gitlab.com/mikeramsey/manage-slow-query-logging/raw/master/manage_slow_query.sh; bash /root/manage_slow_query.sh USERNAME on
+
+# Disable slow_query_log:
+# bash /root/manage_slow_query.sh USERNAME off
+
+
 
 Today=$(date +"%Y-%m-%d")
 
+username=$1
+SLOWQUERYState=${2^^}
+
+user_homedir=$(grep -E "^${username}:" /etc/passwd | cut -d: -f6)
+
 ## Configure
 ####################
-
-USER=$1
-SLOWQUERYState=${2^^}
 SLOWQUERYLOG="/var/log/mysql-slow.log"
 ###################
 
@@ -34,6 +53,7 @@ fi
 
 echo "Show current status"
 mysql -u root -e "SHOW GLOBAL VARIABLES LIKE '%slow_query_log%';"
+mysql -u root -e "SHOW GLOBAL VARIABLES LIKE '%long_query_time%';"
 
 #Backup current config
 #cp /etc/my.cnf /etc/my.cnf-bak_"$Today"
@@ -65,17 +85,17 @@ if [ "$SLOWQUERYState" == "ON" ] ; then
 	echo "";
 	mysql -u root -e "set global slow_query_log_file ='$SLOWQUERYLOG';"
 		
-	echo "Symlink slow query log to users home directory: /home/$USER/mysql-slow.log" 
+	echo "Symlink slow query log to users home directory: ${user_homedir}/mysql-slow.log" 
 	echo "";
-	ln -s $SLOWQUERYLOG /home/"$USER"/mysql-slow.log
+	ln -s $SLOWQUERYLOG "$user_homedir"/mysql-slow.log
 	    
-	echo "Add $USER to mysql group: usermod -a -G mysql $USER"
+	echo "Add $username to mysql group: usermod -a -G mysql $username"
 	echo "";
-        usermod -a -G mysql "$USER"
+        usermod -a -G mysql "$username"
 		
-	echo "chown file so its owned by $USER:mysql" 
+	echo "chown file so its owned by $username:mysql" 
 	echo "";
-	chown "$USER":mysql /home/"$USER"/mysql-slow.log 
+	chown "$username":mysql "$user_homedir"/mysql-slow.log 
 
 
 #Disable Slow query logging
@@ -84,21 +104,21 @@ elif [ "$SLOWQUERYState" == "OFF" ] ; then
 	echo "";
 	mysql -u root -e "set global slow_query_log = 'OFF';"
 	
-	echo "Remove Symlink to users home directory: unlink /home/$USER/mysql-slow.log"
+	echo "Remove Symlink to users home directory: unlink ${user_homedir}/mysql-slow.log"
 	echo "";
-	unlink /home/"$USER"/mysql-slow.log
+	unlink "$user_homedir"/mysql-slow.log
 	
-	echo "copy slow query log to $USER home directory /home/$USER/mysql-slow.log_$Today"
+	echo "copy slow query log to $username home directory ${user_homedir}/mysql-slow.log_$Today"
 	echo "";
-	cp $SLOWQUERYLOG /home/"$USER"/mysql-slow.log_"$Today"
+	cp $SLOWQUERYLOG "$user_homedir"/mysql-slow.log_"$Today"
 	
-	echo "chown $USER:$USER /home/$USER/mysql-slow.log_$Today"
+	echo "chown $username:$username ${user_homedir}/mysql-slow.log_$Today"
 	echo "";
-	chown "$USER":"$USER" /home/"$USER"/mysql-slow.log_"$Today"
+	chown "$username":"$username" "$user_homedir"/mysql-slow.log_"$Today"
 	    
-	echo "remove $USER from mysql group. Setting back to own group: usermod -G ${USER} ${USER}"
+	echo "remove $username from mysql group. Setting back to own group: usermod -G ${username} ${username}"
 	echo "";
-        usermod -G "$USER" "$USER"
+        usermod -G "$username" "$username"
 
 else 
 	echo "No Slow Query Request Provided" 
